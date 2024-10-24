@@ -1,0 +1,47 @@
+steps:
+  - label: ":package: Build, Package and run tests"
+    commands:
+      - "sh .buildkite/scripts/build_and_test.sh"
+    agents:
+      queue: default
+    artifact_paths:
+      - "/Users/kyleswaffield/docker/${BUILDKITE_PIPELINE_NAME}/${BUILDKITE_BRANCH}/serverless.yml"
+      - "/Users/kyleswaffield/docker/${BUILDKITE_PIPELINE_NAME}/${BUILDKITE_BRANCH}/postman_collection.json"
+
+  - wait: ~
+    continue_on_failure: false
+
+  - block: ':computer: Deploy stack?'
+    branches: "!main"
+
+  - name: ':desert_island: Deploy'
+    commands:
+      - "sh .buildkite/scripts/deploy.sh"
+    agents:
+      queue: default
+    artifact_paths:
+      - "deploy_result"
+
+  - wait
+
+  - name: ':postman: postman'
+    commands:
+      - 'sh .buildkite/scripts/postman.sh'
+    agents:
+      queue: default
+    artifact_paths:
+      - "postman_result"
+
+  - wait: ~
+    continue_on_failure: true
+    branches: "!main"
+
+  - block: ':bomb: Remove Stack'
+    branches: "!main"
+
+  - name: ':gun: Removing stack'
+    branches: "!main"
+    commands:
+      - 'sh .buildkite/scripts/remove.sh'
+    agents:
+      queue: default

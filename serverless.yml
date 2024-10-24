@@ -1,0 +1,115 @@
+service: $APPLICATION
+
+provider:
+  name: aws
+  architecture: arm64
+  ecr:
+    images:
+      cloud-template-lambda:
+        path: ./
+  runtime: ruby3.2
+  profile: default
+  stage: $STAGE
+  region: $REGION
+  environment:
+    STAGE: $STAGE
+
+plugins:
+  - serverless-add-api-key
+
+custom:
+  databaseUrl: $DATABASE_URL
+  apiKeys:
+    - name: $KEY
+
+functions:
+  api_status:
+    image:
+      name: cloud-template-lambda
+      command:
+        - lib/lambda/handler.api_status
+      entryPoint:
+        - '/lambda-entrypoint.sh'
+    events:
+      - http:
+          path: /status
+          method: get
+          cors: true
+          private: true
+  swagger_status:
+    image:
+      name: cloud-template-lambda
+      command:
+        - lib/lambda/handler.swagger_status
+      entryPoint:
+        - '/lambda-entrypoint.sh'
+    events:
+      - http:
+          path: /swagger
+          method: get
+          cors: true
+  get_person_by_id:
+    image:
+      name: cloud-template-lambda
+      command:
+        - lib/lambda/handler.get_person_by_id
+      entryPoint:
+        - '/lambda-entrypoint.sh'
+    events:
+      - http:
+          path: /person/{id}
+          method: get
+          cors: true
+          private: true
+  get_person:
+    image:
+      name: cloud-template-lambda
+      command:
+        - lib/lambda/handler.get_person
+      entryPoint:
+        - '/lambda-entrypoint.sh'
+    events:
+      - http:
+          path: /person
+          method: get
+          cors: true
+          private: true
+  post_person:
+    image:
+      name: cloud-template-lambda
+      command:
+        - lib/lambda/handler.post_person
+      entryPoint:
+        - '/lambda-entrypoint.sh'
+    events:
+      - http:
+          path: /person
+          method: post
+          cors: true
+          private: true
+  put_person:
+    image:
+      name: cloud-template-lambda
+      command:
+        - lib/lambda/handler.put_person
+      entryPoint:
+        - '/lambda-entrypoint.sh'
+    events:
+      - http:
+          path: /person/{id}
+          method: put
+          cors: true
+          private: true
+  delete_person:
+    image:
+      name: cloud-template-lambda
+      command:
+        - lib/lambda/handler.delete_person
+      entryPoint:
+        - '/lambda-entrypoint.sh'
+    events:
+      - http:
+          path: /person/{id}
+          method: delete
+          cors: true
+          private: true
