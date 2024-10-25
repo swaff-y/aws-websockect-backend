@@ -3,6 +3,7 @@
 require 'sinatra'
 require 'sinatra-websocket'
 require 'openssl'
+require_relative '../lib/lambda/message_handler'
 
 set :server, 'thin'
 set :sockets, []
@@ -15,17 +16,7 @@ get '/' do
         settings.sockets << ws
       end
       ws.onmessage do |msg|
-        puts "Received message: #{ws.object_id} => #{msg}"
-        msg = JSON.parse(msg)
-        settings.sockets.each do |s|
-          if ws.object_id.equal?(s.object_id) && msg['type'] == 'self'
-            EM.next_tick { s.send(msg['message']) }
-          end
-
-          if msg['type'] == 'broadcast'
-            EM.next_tick { s.send(msg['message']) }
-          end
-        end
+        message_handler(ws, msg)
       end
       ws.onclose do
         warn('websocket closed')
