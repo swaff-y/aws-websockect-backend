@@ -1,18 +1,12 @@
 # frozen_string_literal: true
 
+require_relative '../controllers/base'
+require_relative '../controllers/policy'
+require_relative '../controllers/contact'
 module Controllers
-  class Respond # rubocop:disable Style/Documentation
-    def initialize(msg)
-      @msg = msg
-    end
-
-    def respond_message
-      case @msg['api']
-      when 'whics'
-        JSON.generate(Controllers::Whics.whics_response(@msg))
-      else
-        JSON.generate({ 'message' => 'Invalid API' })
-      end
+  class Respond < Base # rubocop:disable Style/Documentation
+    def self.respond_message(msg)
+      new(msg).respond_message
     end
   end
 end
