@@ -10,7 +10,7 @@ module Controllers
 
     def process_message
       puts 'Processing Policy API'
-
+      sleep rand(1..3)
       policy_message
     end
 

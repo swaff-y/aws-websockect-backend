@@ -4,14 +4,18 @@ require_relative '../controllers/respond'
 
 def message_handler(ws, msg)
   puts "Received message: #{ws.object_id} => #{msg}"
+  raise StandardError, 'Invalid JSON' if  msg.nil? || msg.empty?
+
   msg = JSON.parse(msg)
   settings.sockets.each do |s|
-    if ws.object_id.equal?(s.object_id) && msg['type'] == 'self'
-      EM.next_tick { s.send(Controllers::Respond.respond_message(msg)) }
-    end
+    Thread.new do
+      if ws.object_id.equal?(s.object_id) && msg['type'] == 'self'
+        EM.next_tick { s.send(Controllers::Respond.respond_message(msg)) }
+      end
 
-    if msg['type'] == 'broadcast'
-      EM.next_tick { s.send(Controllers::Respond.respond_message(msg)) }
+      if msg['type'] == 'broadcast'
+        EM.next_tick { s.send(Controllers::Respond.respond_message(msg)) }
+      end
     end
   end
 rescue JSON::ParserError
